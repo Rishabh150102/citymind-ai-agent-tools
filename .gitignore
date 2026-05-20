@@ -1,0 +1,68 @@
+# ==============================
+# Python
+# ==============================
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environment
+venv/
+.env/
+.venv/
+
+# Environment Variables
+.env
+
+# FastAPI / Python cache
+.pytest_cache/
+.mypy_cache/
+
+# ==============================
+# Node.js / Next.js
+# ==============================
+
+node_modules/
+.next/
+out/
+dist/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ==============================
+# IDE / Editor
+# ==============================
+
+.vscode/
+.idea/
+
+# ==============================
+# OS Files
+# ==============================
+
+.DS_Store
+Thumbs.db
+
+# ==============================
+# Build / Misc
+# ==============================
+
+coverage/
+*.log
+
+# ==============================
+# Temporary Files
+# ==============================
+
+temp/
+tmp/
+
+# ==============================
+# Optional Deployment Files
+# ==============================
+
+.vercel/
