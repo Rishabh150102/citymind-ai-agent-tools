@@ -1,53 +1,52 @@
 import { motion } from 'framer-motion';
-import { Sparkles, MapPin, Newspaper, Cloud, Zap } from 'lucide-react';
+import { Sparkles, MapPin, Newspaper, Cloud, Globe, Building2 } from 'lucide-react';
 import { AgentLogs } from './AgentLogs';
 import { StatusCard } from './StatusCard';
-import { AgentLog, SuggestedPrompt } from '../types';
+import { AgentLog } from '../types';
 
 interface SidebarProps {
   logs: AgentLog[];
+  toolCount: number;
   onPromptSelect: (prompt: string) => void;
 }
 
-const suggestedPrompts: SuggestedPrompt[] = [
+const trendingQueries = [
   { id: '1', text: 'How is Delhi today?', icon: 'map' },
-  { id: '2', text: 'Latest news in Mumbai', icon: 'news' },
+  { id: '2', text: 'Trending news in Mumbai', icon: 'news' },
   { id: '3', text: 'Weather in Bangalore', icon: 'cloud' },
-  { id: '4', text: "What's happening in Lucknow?", icon: 'zap' },
+  { id: '4', text: 'Latest updates from New York', icon: 'globe' },
+  { id: '5', text: "What's happening in Dubai?", icon: 'building' },
+  { id: '6', text: 'News and weather in London', icon: 'globe' },
 ];
 
-const promptIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+const queryIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   map: MapPin,
   news: Newspaper,
   cloud: Cloud,
-  zap: Zap,
+  globe: Globe,
+  building: Building2,
 };
 
-export function Sidebar({ logs, onPromptSelect }: SidebarProps) {
-  // Count tools from logs
-  const toolCallsCount = logs.filter(log => 
-    log.message.toLowerCase().includes('tool selected')
-  ).length;
-
+export function Sidebar({ logs, toolCount, onPromptSelect }: SidebarProps) {
   return (
     <motion.aside
       initial={{ x: -20, opacity: 0 }}
       animate={{ x: 0, opacity: 1 }}
       className="w-80 border-r border-white/10 bg-slate-950/50 backdrop-blur-xl flex flex-col h-full overflow-hidden"
     >
-      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
+      <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-5">
         {/* Logo Section */}
         <motion.div
-          whileHover={{ scale: 1.02 }}
+          whileHover={{ scale: 1.01 }}
           className="relative p-4 rounded-2xl bg-gradient-to-br from-cyan-500/10 via-purple-500/10 to-pink-500/10 border border-white/10"
         >
           <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-purple-500/5 to-pink-500/5 rounded-2xl" />
           <div className="relative">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-1.5">
               <Sparkles className="w-5 h-5 text-cyan-400" />
               <h2 className="text-lg font-bold text-white">CityMind AI</h2>
             </div>
-            <p className="text-xs text-slate-400">
+            <p className="text-xs text-slate-400 leading-relaxed">
               Your intelligent city assistant powered by LangChain agents
             </p>
           </div>
@@ -57,8 +56,8 @@ export function Sidebar({ logs, onPromptSelect }: SidebarProps) {
         <AgentLogs logs={logs} />
 
         {/* Status Cards */}
-        <div className="space-y-3">
-          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+        <div className="space-y-2.5">
+          <h3 className="text-xs font-medium text-slate-500 uppercase tracking-wider">
             System Status
           </h3>
           <div className="grid grid-cols-3 gap-2">
@@ -69,44 +68,46 @@ export function Sidebar({ logs, onPromptSelect }: SidebarProps) {
               icon="activity"
             />
             <StatusCard
-              label="Tools"
-              value={toolCallsCount.toString()}
-              status={toolCallsCount > 0 ? 'active' : 'inactive'}
+              label="Tools Used"
+              value={toolCount}
+              status={toolCount > 0 ? 'active' : 'inactive'}
               icon="wrench"
+              animateValue
             />
             <StatusCard
               label="Status"
               value="Ready"
               status="active"
-              icon="activity"
+              icon="check"
             />
           </div>
         </div>
 
-        {/* Suggested Prompts */}
-        <div className="space-y-3">
-          <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-            Suggested Prompts
+        {/* Trending Queries */}
+        <div className="space-y-2.5">
+          <h3 className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+            Trending Queries
           </h3>
-          <div className="space-y-2">
-            {suggestedPrompts.map((prompt, index) => {
-              const Icon = promptIcons[prompt.icon];
+          <div className="grid grid-cols-2 gap-1.5">
+            {trendingQueries.map((query, index) => {
+              const Icon = queryIcons[query.icon];
               return (
                 <motion.button
-                  key={prompt.id}
-                  initial={{ opacity: 0, y: 10 }}
+                  key={query.id}
+                  initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: index * 0.1 }}
-                  whileHover={{ scale: 1.02, x: 4 }}
+                  transition={{ delay: index * 0.05 }}
+                  whileHover={{ scale: 1.02, y: -1 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => onPromptSelect(prompt.text)}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-cyan-500/30 transition-all duration-200 text-left group"
+                  onClick={() => onPromptSelect(query.text)}
+                  className="group relative flex items-center gap-2 px-2.5 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-cyan-500/20 transition-all duration-200 text-left overflow-hidden"
                 >
-                  <div className="p-1.5 rounded-lg bg-cyan-500/10 group-hover:bg-cyan-500/20 transition-colors">
-                    <Icon className="w-4 h-4 text-cyan-400" />
-                  </div>
-                  <span className="text-sm text-slate-300 group-hover:text-white transition-colors">
-                    {prompt.text}
+                  {/* Hover glow */}
+                  <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/5 to-purple-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  
+                  <Icon className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400 transition-colors relative z-10 flex-shrink-0" />
+                  <span className="text-xs text-slate-400 group-hover:text-slate-200 transition-colors relative z-10 truncate leading-tight">
+                    {query.text.length > 20 ? query.text.slice(0, 20) + '...' : query.text}
                   </span>
                 </motion.button>
               );
@@ -116,8 +117,8 @@ export function Sidebar({ logs, onPromptSelect }: SidebarProps) {
       </div>
 
       {/* Footer */}
-      <div className="p-4 border-t border-white/10">
-        <div className="flex items-center justify-between text-xs text-slate-500">
+      <div className="p-3 border-t border-white/10">
+        <div className="flex items-center justify-between text-[10px] text-slate-600">
           <span>v1.0.0</span>
           <span className="flex items-center gap-1">
             <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />

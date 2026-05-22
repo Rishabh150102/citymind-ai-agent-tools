@@ -1,40 +1,39 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Sparkles, MapPin, Newspaper, Cloud, Zap, Clock } from 'lucide-react';
+import { X, Sparkles, MapPin, Newspaper, Cloud, Globe, Building2 } from 'lucide-react';
 import { AgentLogs } from './AgentLogs';
 import { StatusCard } from './StatusCard';
-import { AgentLog, SuggestedPrompt } from '../types';
+import { AgentLog } from '../types';
 
 interface MobileMenuProps {
   isOpen: boolean;
   onClose: () => void;
   logs: AgentLog[];
+  toolCount: number;
   onPromptSelect: (prompt: string) => void;
 }
 
-const suggestedPrompts: SuggestedPrompt[] = [
+const trendingQueries = [
   { id: '1', text: 'How is Delhi today?', icon: 'map' },
-  { id: '2', text: 'Latest news in Mumbai', icon: 'news' },
+  { id: '2', text: 'Trending news in Mumbai', icon: 'news' },
   { id: '3', text: 'Weather in Bangalore', icon: 'cloud' },
-  { id: '4', text: "What's happening in Lucknow?", icon: 'zap' },
+  { id: '4', text: 'Latest updates from New York', icon: 'globe' },
+  { id: '5', text: "What's happening in Dubai?", icon: 'building' },
+  { id: '6', text: 'News and weather in London', icon: 'globe' },
 ];
 
-const promptIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+const queryIcons: Record<string, React.ComponentType<{ className?: string }>> = {
   map: MapPin,
   news: Newspaper,
   cloud: Cloud,
-  zap: Zap,
+  globe: Globe,
+  building: Building2,
 };
 
-export function MobileMenu({ isOpen, onClose, logs, onPromptSelect }: MobileMenuProps) {
+export function MobileMenu({ isOpen, onClose, logs, toolCount, onPromptSelect }: MobileMenuProps) {
   const handlePromptSelect = (prompt: string) => {
     onPromptSelect(prompt);
     onClose();
   };
-
-  // Count tools from logs
-  const toolCallsCount = logs.filter(log => 
-    log.message.toLowerCase().includes('tool selected')
-  ).length;
 
   return (
     <AnimatePresence>
@@ -64,7 +63,7 @@ export function MobileMenu({ isOpen, onClose, logs, onPromptSelect }: MobileMenu
           >
             <div className="p-4">
               {/* Header */}
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-5">
                 <div className="flex items-center gap-2">
                   <Sparkles className="w-5 h-5 text-cyan-400" />
                   <h2 className="text-lg font-bold text-white">CityMind AI</h2>
@@ -77,13 +76,13 @@ export function MobileMenu({ isOpen, onClose, logs, onPromptSelect }: MobileMenu
                 </button>
               </div>
               
-              <div className="space-y-6">
+              <div className="space-y-5">
                 {/* Execution Logs */}
                 <AgentLogs logs={logs} />
                 
                 {/* Status Cards */}
-                <div className="space-y-3">
-                  <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
+                <div className="space-y-2.5">
+                  <h3 className="text-xs font-medium text-slate-500 uppercase tracking-wider">
                     System Status
                   </h3>
                   <div className="grid grid-cols-3 gap-2">
@@ -94,38 +93,39 @@ export function MobileMenu({ isOpen, onClose, logs, onPromptSelect }: MobileMenu
                       icon="activity"
                     />
                     <StatusCard
-                      label="Tools"
-                      value={toolCallsCount.toString()}
-                      status={toolCallsCount > 0 ? 'active' : 'inactive'}
+                      label="Tools Used"
+                      value={toolCount}
+                      status={toolCount > 0 ? 'active' : 'inactive'}
                       icon="wrench"
+                      animateValue
                     />
                     <StatusCard
                       label="Status"
                       value="Ready"
                       status="active"
-                      icon="activity"
+                      icon="check"
                     />
                   </div>
                 </div>
                 
-                {/* Suggested Prompts */}
-                <div className="space-y-3">
-                  <h3 className="text-xs font-semibold text-slate-400 uppercase tracking-wider">
-                    Suggested Prompts
+                {/* Trending Queries */}
+                <div className="space-y-2.5">
+                  <h3 className="text-xs font-medium text-slate-500 uppercase tracking-wider">
+                    Trending Queries
                   </h3>
-                  <div className="space-y-2">
-                    {suggestedPrompts.map((prompt) => {
-                      const Icon = promptIcons[prompt.icon];
+                  <div className="grid grid-cols-2 gap-1.5">
+                    {trendingQueries.map((query) => {
+                      const Icon = queryIcons[query.icon];
                       return (
                         <button
-                          key={prompt.id}
-                          onClick={() => handlePromptSelect(prompt.text)}
-                          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 hover:border-cyan-500/30 transition-all text-left"
+                          key={query.id}
+                          onClick={() => handlePromptSelect(query.text)}
+                          className="group flex items-center gap-2 px-2.5 py-2 rounded-lg bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:border-cyan-500/20 transition-all text-left"
                         >
-                          <div className="p-1.5 rounded-lg bg-cyan-500/10">
-                            <Icon className="w-4 h-4 text-cyan-400" />
-                          </div>
-                          <span className="text-sm text-slate-300">{prompt.text}</span>
+                          <Icon className="w-3.5 h-3.5 text-slate-500 group-hover:text-cyan-400 transition-colors flex-shrink-0" />
+                          <span className="text-xs text-slate-400 group-hover:text-slate-200 transition-colors truncate">
+                            {query.text.length > 20 ? query.text.slice(0, 20) + '...' : query.text}
+                          </span>
                         </button>
                       );
                     })}

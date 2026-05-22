@@ -1,17 +1,18 @@
 import { motion } from 'framer-motion';
-import { Activity, Shield, Wrench } from 'lucide-react';
+import { Activity, Wrench, CircleCheck } from 'lucide-react';
 
 interface StatusCardProps {
   label: string;
-  value: string;
+  value: string | number;
   status: 'active' | 'inactive' | 'pending';
   icon: string;
+  animateValue?: boolean;
 }
 
 const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   activity: Activity,
-  shield: Shield,
   wrench: Wrench,
+  check: CircleCheck,
 };
 
 const statusColors = {
@@ -35,16 +36,16 @@ const statusColors = {
   },
 };
 
-export function StatusCard({ label, value, status, icon }: StatusCardProps) {
+export function StatusCard({ label, value, status, icon, animateValue }: StatusCardProps) {
   const Icon = iconMap[icon] || Activity;
   const colors = statusColors[status];
 
   return (
     <motion.div
-      whileHover={{ scale: 1.02, y: -2 }}
+      whileHover={{ scale: 1.03, y: -2 }}
       className={`relative overflow-hidden rounded-xl ${colors.bg} border ${colors.border} p-3`}
     >
-      <div className="flex items-center justify-between mb-2">
+      <div className="flex items-center justify-between mb-1.5">
         <Icon className={`w-4 h-4 ${colors.text}`} />
         <motion.div
           animate={{ scale: [1, 1.2, 1] }}
@@ -53,7 +54,15 @@ export function StatusCard({ label, value, status, icon }: StatusCardProps) {
         />
       </div>
       <p className="text-[10px] uppercase tracking-wider text-slate-500 mb-0.5">{label}</p>
-      <p className={`text-sm font-semibold ${colors.text}`}>{value}</p>
+      <motion.p 
+        key={String(value)}
+        initial={animateValue ? { scale: 1.3, opacity: 0 } : false}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+        className={`text-sm font-semibold ${colors.text}`}
+      >
+        {value}
+      </motion.p>
       
       <div className={`absolute -bottom-2 -right-2 w-12 h-12 ${colors.dot} opacity-10 blur-xl rounded-full`} />
     </motion.div>

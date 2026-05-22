@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from agent import agent
 from fastapi.middleware.cors import CORSMiddleware
+from rich import print
 
 app = FastAPI()
 
@@ -44,6 +45,22 @@ async def chat(request: ChatRequest):
             ]
         })
 
+        print(result)
+
+        response_text = str(result["messages"])
+
+        tool_count = 0
+
+        # for message in result["messages"]:
+        #     if hasattr(message, "tool_calls") and message.tool_calls:
+        #         tool_count += len(message.tool_calls)
+
+        if "get_weather" in response_text:
+            tool_count += 1
+
+        if "get_news" in response_text:
+            tool_count += 1
+
         logs.append("Generating final response")
         logs.append("Agent execution completed")
 
@@ -52,7 +69,8 @@ async def chat(request: ChatRequest):
         return {
             "status": "success",
             "response": final_response,
-            "logs": logs
+            "logs": logs,
+            "tool_count": tool_count
         }
 
     except Exception as e:

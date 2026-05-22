@@ -24,6 +24,7 @@ export interface ChatResponse {
   status: 'success' | 'error';
   response?: string;
   logs?: string[];
+  tool_count?: number;
 }
 
 export interface SuggestedPrompt {

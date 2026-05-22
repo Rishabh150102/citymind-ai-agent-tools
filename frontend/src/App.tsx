@@ -1,21 +1,28 @@
+import { useState } from 'react';
 import { Navbar } from './components/Navbar';
 import { Sidebar } from './components/Sidebar';
 import { ChatInterface } from './components/ChatInterface';
 import { MobileNav } from './components/MobileNav';
 import { MobileMenu } from './components/MobileMenu';
 import { useChat } from './hooks/useChat';
-import { useState } from 'react';
 
 function App() {
   const {
     messages,
     logs,
+    toolCount,
     isLoading,
     loadingMessage,
     sendMessage,
   } = useChat();
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [inputValue, setInputValue] = useState('');
+
+  const handlePromptSelect = (prompt: string) => {
+    setInputValue(prompt);
+    sendMessage(prompt);
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-white overflow-hidden">
@@ -33,14 +40,17 @@ function App() {
         <div className="flex flex-1 pt-16">
           <Sidebar
             logs={logs}
-            onPromptSelect={sendMessage}
+            toolCount={toolCount}
+            onPromptSelect={handlePromptSelect}
           />
           
           <ChatInterface
             messages={messages}
             isLoading={isLoading}
             loadingMessage={loadingMessage}
+            inputValue={inputValue}
             onSendMessage={sendMessage}
+            onInputChange={setInputValue}
           />
         </div>
       </div>
@@ -54,7 +64,9 @@ function App() {
             messages={messages}
             isLoading={isLoading}
             loadingMessage={loadingMessage}
+            inputValue={inputValue}
             onSendMessage={sendMessage}
+            onInputChange={setInputValue}
           />
         </div>
       </div>
@@ -64,7 +76,8 @@ function App() {
         isOpen={mobileMenuOpen}
         onClose={() => setMobileMenuOpen(false)}
         logs={logs}
-        onPromptSelect={sendMessage}
+        toolCount={toolCount}
+        onPromptSelect={handlePromptSelect}
       />
     </div>
   );

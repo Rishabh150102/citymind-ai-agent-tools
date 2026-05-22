@@ -6,51 +6,74 @@ const BACKEND_URL = 'http://127.0.0.1:8000/chat';
 const generateId = () => Math.random().toString(36).substring(2, 15);
 
 // Fallback responses when backend is unavailable
-const fallbackResponses: Record<string, { response: string; logs: string[] }> = {
+const fallbackResponses: Record<string, { response: string; logs: string[]; tool_count: number }> = {
   delhi: {
     response: `**Delhi Today**
 
 Weather: Partly cloudy, 32°C
 Air Quality: Moderate (AQI: 156)
 
-Good conditions for morning outdoor activities. Consider a mask in congested areas.`,
-    logs: ['Received user query', 'Analyzing user intent', 'Weather tool selected', 'Generating final response']
+Good conditions for morning outdoor activities.`,
+    logs: ['Received user query', 'Analyzing user intent', 'Weather tool selected', 'Generating final response'],
+    tool_count: 1
   },
   mumbai: {
-    response: `**Mumbai News**
+    response: `**Mumbai - Trending Updates**
 
 • Metro Line 4 at 75% completion
 • Yellow alert for heavy rainfall
 • BKC fintech hub expansion announced`,
-    logs: ['Received user query', 'Analyzing user intent', 'News tool selected', 'Generating final response']
+    logs: ['Received user query', 'Analyzing user intent', 'News tool selected', 'Generating final response'],
+    tool_count: 1
   },
   bangalore: {
     response: `**Bangalore Weather**
 
 Current: 28°C, partly cloudy
-Humidity: 65%
-Wind: 12 km/h
+Humidity: 65% | Wind: 12 km/h
 
-Evening showers expected. Good for outdoor dining.`,
-    logs: ['Received user query', 'Analyzing user intent', 'Weather tool selected', 'Generating final response']
+Evening showers expected.`,
+    logs: ['Received user query', 'Analyzing user intent', 'Weather tool selected', 'Generating final response'],
+    tool_count: 1
   },
-  lucknow: {
-    response: `**Lucknow Updates**
+  newyork: {
+    response: `**New York - Latest Headlines**
 
-• Heritage corridor development ongoing
-• New metro stations inaugurated
-• Cultural festival scheduled this weekend`,
-    logs: ['Received user query', 'Analyzing user intent', 'News tool selected', 'Generating final response']
+• Tech sector shows strong Q4 growth
+• Central Park summer events announced
+• Transit upgrades scheduled for fall`,
+    logs: ['Received user query', 'Analyzing user intent', 'News tool selected', 'Generating final response'],
+    tool_count: 1
+  },
+  dubai: {
+    response: `**Dubai - Current Updates**
+
+Weather: Clear, 38°C
+• Expo City expansion plans revealed
+• New metro line construction begins`,
+    logs: ['Received user query', 'Analyzing user intent', 'Weather tool selected', 'News tool selected', 'Generating final response'],
+    tool_count: 2
+  },
+  london: {
+    response: `**London - News & Weather**
+
+Weather: 18°C, light rain
+• Financial district expansion approved
+• Tube upgrades scheduled this weekend`,
+    logs: ['Received user query', 'Analyzing user intent', 'Weather tool selected', 'News tool selected', 'Generating final response'],
+    tool_count: 2
   },
   default: {
-    response: `I can help you with weather updates and news for various cities. Try asking about Delhi, Mumbai, Bangalore, or Lucknow.`,
-    logs: ['Received user query', 'Analyzing user intent', 'Processing query', 'Generating response']
+    response: `I can help you with weather updates and trending news for cities worldwide. Try asking about Delhi, Mumbai, New York, Dubai, or London.`,
+    logs: ['Received user query', 'Analyzing user intent', 'Processing query', 'Generating response'],
+    tool_count: 0
   }
 };
 
 export function useChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [logs, setLogs] = useState<AgentLog[]>([]);
+  const [toolCount, setToolCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState('');
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -78,7 +101,9 @@ export function useChat() {
     if (lower.includes('delhi')) return fallbackResponses.delhi;
     if (lower.includes('mumbai')) return fallbackResponses.mumbai;
     if (lower.includes('bangalore') || lower.includes('bengaluru')) return fallbackResponses.bangalore;
-    if (lower.includes('lucknow')) return fallbackResponses.lucknow;
+    if (lower.includes('new york') || lower.includes('nyc')) return fallbackResponses.newyork;
+    if (lower.includes('dubai')) return fallbackResponses.dubai;
+    if (lower.includes('london')) return fallbackResponses.london;
     return fallbackResponses.default;
   };
 
@@ -101,20 +126,14 @@ export function useChat() {
     setMessages(prev => [...prev, userMessage]);
     setIsLoading(true);
     setLogs([]);
+    setToolCount(0); // Reset tool count for new request
 
     try {
-      // Add initial log
       addLog('Received user query', 'success');
-      
-      // Show loading state
       setLoadingMessage('Connecting to agent...');
-      
-      // Add pending logs that will be updated
       addLog('Analyzing user intent', 'pending');
 
-      // Try to call the backend
       let response: ChatResponse;
-      let backendConnected = false;
 
       try {
         const res = await fetch(BACKEND_URL, {
@@ -127,42 +146,42 @@ export function useChat() {
         if (res.ok) {
           const data = await res.json();
           response = data;
-          backendConnected = true;
         } else {
           throw new Error('Backend returned error');
         }
-      } catch (fetchError) {
-        // Backend unavailable, use fallback
+      } catch {
         const fallback = getFallbackResponse(content);
         response = {
           status: 'success',
           response: fallback.response,
-          logs: fallback.logs
+          logs: fallback.logs,
+          tool_count: fallback.tool_count
         };
       }
 
       // Process logs from response
       if (response.logs && response.logs.length > 0) {
-        // Clear the pending log and add all logs from backend
         setLogs([]);
         
         for (let i = 0; i < response.logs.length; i++) {
           const logMessage = response.logs[i];
           const isLast = i === response.logs.length - 1;
           
-          // Add log with appropriate type
-          await new Promise(resolve => setTimeout(resolve, 150));
+          await new Promise(resolve => setTimeout(resolve, 120));
           addLog(logMessage, isLast ? 'success' : 'info');
         }
       } else {
-        // Update the pending log to success
         updateLastLog('success');
         addLog('Processing complete', 'success');
       }
 
+      // Set tool count from response
+      if (response.tool_count !== undefined) {
+        setToolCount(response.tool_count);
+      }
+
       setLoadingMessage('');
 
-      // Add assistant message
       const assistantMessage: Message = {
         id: generateId(),
         role: 'assistant',
@@ -173,16 +192,15 @@ export function useChat() {
 
       setMessages(prev => [...prev, assistantMessage]);
 
-      // End streaming animation
       setTimeout(() => {
         setMessages(prev => prev.map(m => 
           m.id === assistantMessage.id ? { ...m, isStreaming: false } : m
         ));
-      }, 800);
+      }, 600);
 
     } catch (error) {
       if (error instanceof Error && error.name === 'AbortError') {
-        return; // Request was cancelled
+        return;
       }
       
       setLoadingMessage('');
@@ -205,11 +223,13 @@ export function useChat() {
   const clearMessages = useCallback(() => {
     setMessages([]);
     setLogs([]);
+    setToolCount(0);
   }, []);
 
   return {
     messages,
     logs,
+    toolCount,
     isLoading,
     loadingMessage,
     sendMessage,

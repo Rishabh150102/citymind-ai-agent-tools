@@ -4,6 +4,7 @@ from tavily import TavilyClient
 from langchain.tools import tool
 
 
+
 # ==============================
 # Environment Variables
 # ==============================
@@ -86,8 +87,9 @@ def get_news(city: str) -> str:
 
     try:
         response = tavily_client.search(
-            query=f"Latest breaking news and current events in {city}",
-            search_depth="basic",
+            query=f"Local city news from {city} India today",
+            search_depth="advanced",
+            topic="news",
             max_results=3
         )
 
@@ -98,14 +100,15 @@ def get_news(city: str) -> str:
 
         news_items = []
 
-        for idx, result in enumerate(results, start=1):
+        for result in results:
 
             title = result.get("title", "No title available")
-            url = result.get("url", "No source available")
+            # url = result.get("url", "No source available")
             snippet = result.get("content", "No summary available")
 
             news_items.append(
-                f"{idx}. {title} - {snippet[:120]}..."
+                f"Headline: {title}\n"
+                f"Summary: {snippet}"
             )
 
         return f"Latest news from {city}:\n" + "\n".join(news_items)
